@@ -108,8 +108,8 @@ class ObservableMutableListTest {
     @Test
     fun `listIterator by large index`() {
         invoking {
-            list.listIterator(3)
-        } //shouldThrow IndexOutOfBoundsException::class
+            list.listIterator(4)
+        } shouldThrow IndexOutOfBoundsException::class
         updated.shouldBeFalse()
         list shouldContainSame listOf(5, 42, 17)
     }
