@@ -18,12 +18,12 @@ class ObservableMutableList<E>(
         return delegate.add(index, element).also { updateAll() }
     }
 
-    override fun addAll(index: Int, elements: Collection<E>): Boolean {
-        return delegate.addAll(index, elements).also { updateAll() }
-    }
-
     override fun addAll(elements: Collection<E>): Boolean {
         return delegate.addAll(elements).also { updateAll() }
+    }
+
+    override fun addAll(index: Int, elements: Collection<E>): Boolean {
+        return delegate.addAll(index, elements).also { updateAll() }
     }
 
     override fun clear() {
