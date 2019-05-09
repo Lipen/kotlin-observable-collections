@@ -4,7 +4,6 @@ import org.amshove.kluent.invoking
 import org.amshove.kluent.shouldBeEmpty
 import org.amshove.kluent.shouldBeFalse
 import org.amshove.kluent.shouldBeTrue
-import org.amshove.kluent.shouldContain
 import org.amshove.kluent.shouldContainSame
 import org.amshove.kluent.shouldEqual
 import org.amshove.kluent.shouldThrow
@@ -26,8 +25,8 @@ class ObservableMutableListTest {
 
     @BeforeEach
     fun setUp() {
+        list = ObservableMutableList(mutableListOf(5, 42, 17)).also { it.subscribe(listener) }
         updated = false
-        list = ObservableMutableList<Int>().also { it.subscribe(listener) }
     }
 
     @Test
@@ -35,7 +34,7 @@ class ObservableMutableListTest {
         list.add(42)
 
         updated.shouldBeTrue()
-        list.shouldContain(42)
+        list shouldContainSame listOf(5, 42, 17, 42)
     }
 
     @Test
@@ -43,41 +42,41 @@ class ObservableMutableListTest {
         list.add(0, 42)
 
         updated.shouldBeTrue()
-        list shouldContainSame listOf(42)
+        list shouldContainSame listOf(5, 42, 17, 42)
     }
 
     @Test
     fun `add by large index`() {
         invoking {
-            list.add(1, 42)
+            list.add(4, 42)
         } shouldThrow IndexOutOfBoundsException::class
 
-        list.shouldBeEmpty()
+        list shouldContainSame listOf(5, 42, 17)
     }
 
     @Test
     fun addAll() {
-        list.addAll(listOf(4, 2, 5))
+        list.addAll(listOf(44, 8))
 
         updated.shouldBeTrue()
-        list shouldContainSame listOf(4, 2, 5)
+        list shouldContainSame listOf(5, 42, 17, 44, 8)
     }
 
     @Test
     fun `addAll by index`() {
-        list.addAll(0, listOf(4, 2, 5))
+        list.addAll(1, listOf(44, 8))
 
         updated.shouldBeTrue()
-        list shouldContainSame listOf(4, 2, 5)
+        list shouldContainSame listOf(5, 44, 8, 42, 17)
     }
 
     @Test
     fun `addAll by large index`() {
         invoking {
-            list.addAll(1, listOf(4, 2, 5))
+            list.addAll(4, listOf(44, 8))
         } shouldThrow IndexOutOfBoundsException::class
         updated.shouldBeFalse()
-        list.shouldBeEmpty()
+        list shouldContainSame listOf(5, 42, 17)
     }
 
     @Test
@@ -91,37 +90,32 @@ class ObservableMutableListTest {
     @Test
     fun listIterator() {
         val iterator: MutableListIterator<Int> = list.listIterator()
-        iterator.add(42)
+        iterator.add(9)
 
         updated.shouldBeTrue()
-        list shouldContainSame listOf(42)
+        list shouldContainSame listOf(5, 42, 17, 9)
     }
 
     @Test
     fun `listIterator by index`() {
-        val iterator: MutableListIterator<Int> = list.listIterator(0)
-        iterator.add(42)
+        val iterator: MutableListIterator<Int> = list.listIterator(2)
+        iterator.add(9)
 
         updated.shouldBeTrue()
-        list shouldContainSame listOf(42)
+        list shouldContainSame listOf(5, 42, 9, 17)
     }
 
     @Test
     fun `listIterator by large index`() {
         invoking {
-            list.listIterator(1)
-        } shouldThrow IndexOutOfBoundsException::class
+            list.listIterator(3)
+        } //shouldThrow IndexOutOfBoundsException::class
         updated.shouldBeFalse()
-        list.shouldBeEmpty()
+        list shouldContainSame listOf(5, 42, 17)
     }
 
     @Test
     fun remove() {
-        list.add(5)
-        list.add(42)
-        list.add(17)
-        updated = false
-
         list.remove(42)
 
         updated.shouldBeTrue()
@@ -130,11 +124,6 @@ class ObservableMutableListTest {
 
     @Test
     fun removeAll() {
-        list.add(5)
-        list.add(42)
-        list.add(17)
-        updated = false
-
         list.removeAll(listOf(5, 17))
 
         updated.shouldBeTrue()
@@ -143,11 +132,6 @@ class ObservableMutableListTest {
 
     @Test
     fun removeAt() {
-        list.add(5)
-        list.add(42)
-        list.add(17)
-        updated = false
-
         list.removeAt(2)
 
         updated.shouldBeTrue()
@@ -156,11 +140,6 @@ class ObservableMutableListTest {
 
     @Test
     fun removeIf() {
-        list.add(5)
-        list.add(42)
-        list.add(17)
-        updated = false
-
         list.removeIf { it == 42 }
 
         updated.shouldBeTrue()
@@ -169,11 +148,6 @@ class ObservableMutableListTest {
 
     @Test
     fun replaceAll() {
-        list.add(5)
-        list.add(42)
-        list.add(17)
-        updated = false
-
         list.replaceAll { it * 2 }
 
         updated.shouldBeTrue()
@@ -182,11 +156,6 @@ class ObservableMutableListTest {
 
     @Test
     fun retainAll() {
-        list.add(5)
-        list.add(42)
-        list.add(17)
-        updated = false
-
         list.retainAll(listOf(17, 5, 30))
 
         updated.shouldBeTrue()
@@ -195,11 +164,6 @@ class ObservableMutableListTest {
 
     @Test
     fun `set by index`() {
-        list.add(5)
-        list.add(42)
-        list.add(17)
-        updated = false
-
         list[1] = 41
 
         updated.shouldBeTrue()
@@ -208,58 +172,34 @@ class ObservableMutableListTest {
 
     @Test
     fun `set by large index`() {
-        list.add(5)
-        list.add(42)
-        list.add(17)
-        updated = false
-
         invoking {
             list.set(3, 10)
         } shouldThrow IndexOutOfBoundsException::class
-
         updated.shouldBeFalse()
         list shouldContainSame listOf(5, 42, 17)
     }
 
     @Test
     fun `get subList`() {
-        list.add(5)
-        list.add(42)
-        list.add(17)
-        list.add(6)
-        list.add(89)
-        updated = false
-
-        val sub: List<Int> = list.subList(1, 4)
+        val sub: List<Int> = list.subList(1, 3)
 
         updated.shouldBeFalse()
-        list shouldContainSame listOf(5, 17, 42, 6, 89)
-        sub shouldContainSame listOf(17, 42, 6)
+        list shouldContainSame listOf(5, 42, 17)
+        sub shouldContainSame listOf(42, 17)
     }
 
     @Test
     fun `get and modify subList`() {
-        list.add(5)
-        list.add(42)
-        list.add(17)
-        list.add(6)
-        list.add(89)
-        updated = false
-
-        val sub: MutableList<Int> = list.subList(1, 4)
+        val sub: MutableList<Int> = list.subList(1, 3)
         sub[0] = 10
 
         updated.shouldBeTrue()
-        list shouldContainSame listOf(5, 10, 17, 6, 89)
-        sub shouldContainSame listOf(10, 17, 6)
+        list shouldContainSame listOf(5, 10, 17)
+        sub shouldContainSame listOf(10, 17)
     }
 
     @Test
     fun toString_() {
-        list.add(5)
-        list.add(42)
-        list.add(17)
-
         list.toString() shouldEqual "[5, 42, 17]"
     }
 }

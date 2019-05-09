@@ -3,31 +3,76 @@ package ru.ifmo.observable.collections
 import ru.ifmo.observable.AbstractObservable
 import ru.ifmo.observable.Listener
 import ru.ifmo.observable.subscribe
-import java.util.Comparator
-import java.util.function.Predicate
-import java.util.function.UnaryOperator
 
-class ObservableMutableList<E>(
-    private val delegate: MutableList<E> = mutableListOf()
-) : MutableList<E> by delegate, AbstractObservable<Listener>() {
+class ObservableMutableList<E> private constructor(
+    private val delegate: MutableList<E>,
+    private val collection: ObservableMutableCollection<E>
+) : MutableList<E> by delegate,
+    MutableCollection<E> by collection,
+    AbstractObservable<Listener>() {
+
+    override val size: Int
+        get() = collection.size
+
+    constructor (delegate: MutableList<E> = mutableListOf()) :
+        this(delegate, ObservableMutableCollection(delegate)) {
+        collection.subscribe(this)
+    }
+
+    override fun contains(element: E): Boolean {
+        return collection.contains(element)
+    }
+
+    override fun containsAll(elements: Collection<E>): Boolean {
+        return collection.containsAll(elements)
+    }
+
+    override fun isEmpty(): Boolean {
+        return collection.isEmpty()
+    }
+
+    override fun iterator(): MutableIterator<E> {
+        return collection.iterator()
+    }
+
     override fun add(element: E): Boolean {
-        return delegate.add(element).also { updateAll() }
+        return collection.add(element)
+    }
+
+    override fun addAll(elements: Collection<E>): Boolean {
+        return collection.addAll(elements)
+    }
+
+    override fun clear() {
+        collection.clear()
+    }
+
+    override fun remove(element: E): Boolean {
+        return collection.remove(element)
+    }
+
+    override fun removeAll(elements: Collection<E>): Boolean {
+        return collection.removeAll(elements)
+    }
+
+    override fun retainAll(elements: Collection<E>): Boolean {
+        return collection.retainAll(elements)
     }
 
     override fun add(index: Int, element: E) {
         return delegate.add(index, element).also { updateAll() }
     }
 
-    override fun addAll(elements: Collection<E>): Boolean {
-        return delegate.addAll(elements).also { updateAll() }
-    }
-
     override fun addAll(index: Int, elements: Collection<E>): Boolean {
         return delegate.addAll(index, elements).also { updateAll() }
     }
 
-    override fun clear() {
-        delegate.clear().also { updateAll() }
+    override fun removeAt(index: Int): E {
+        return delegate.removeAt(index).also { updateAll() }
+    }
+
+    override fun set(index: Int, element: E): E {
+        return delegate.set(index, element).also { updateAll() }
     }
 
     override fun listIterator(): MutableListIterator<E> {
@@ -36,34 +81,6 @@ class ObservableMutableList<E>(
 
     override fun listIterator(index: Int): MutableListIterator<E> {
         return ObservableMutableListIterator(delegate.listIterator(index)).also { it.subscribe(this) }
-    }
-
-    override fun remove(element: E): Boolean {
-        return delegate.remove(element).also { updateAll() }
-    }
-
-    override fun removeAll(elements: Collection<E>): Boolean {
-        return delegate.removeAll(elements).also { updateAll() }
-    }
-
-    override fun removeAt(index: Int): E {
-        return delegate.removeAt(index).also { updateAll() }
-    }
-
-    override fun removeIf(filter: Predicate<in E>): Boolean {
-        return delegate.removeIf(filter).also { updateAll() }
-    }
-
-    override fun replaceAll(operator: UnaryOperator<E>) {
-        delegate.replaceAll(operator).also { updateAll() }
-    }
-
-    override fun retainAll(elements: Collection<E>): Boolean {
-        return delegate.retainAll(elements).also { updateAll() }
-    }
-
-    override fun set(index: Int, element: E): E {
-        return delegate.set(index, element).also { updateAll() }
     }
 
     override fun subList(fromIndex: Int, toIndex: Int): MutableList<E> {

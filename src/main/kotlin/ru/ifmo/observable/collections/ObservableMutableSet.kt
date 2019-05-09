@@ -3,44 +3,20 @@ package ru.ifmo.observable.collections
 import ru.ifmo.observable.AbstractObservable
 import ru.ifmo.observable.Listener
 import ru.ifmo.observable.subscribe
-import java.util.function.Predicate
 
-class ObservableMutableSet<E>(
-    private val delegate: MutableSet<E> = mutableSetOf()
-) : MutableSet<E> by delegate, AbstractObservable<Listener>() {
-    override fun add(element: E): Boolean {
-        return delegate.add(element).also { updateAll() }
-    }
+class ObservableMutableSet<E> private constructor(
+    private val delegate: MutableSet<E>,
+    private val collection: ObservableMutableCollection<E>
+) : MutableSet<E>,
+    MutableCollection<E> by collection,
+    AbstractObservable<Listener>() {
 
-    override fun addAll(elements: Collection<E>): Boolean {
-        return delegate.addAll(elements).also { updateAll() }
-    }
-
-    override fun clear() {
-        delegate.clear().also { updateAll() }
-    }
-
-    override fun iterator(): MutableIterator<E> {
-        return ObservableMutableIterator(delegate.iterator()).also { it.subscribe(this) }
-    }
-
-    override fun remove(element: E): Boolean {
-        return delegate.remove(element).also { updateAll() }
-    }
-
-    override fun removeAll(elements: Collection<E>): Boolean {
-        return delegate.removeAll(elements).also { updateAll() }
-    }
-
-    override fun removeIf(filter: Predicate<in E>): Boolean {
-        return delegate.removeIf(filter).also { updateAll() }
-    }
-
-    override fun retainAll(elements: Collection<E>): Boolean {
-        return delegate.retainAll(elements).also { updateAll() }
+    constructor(delegate: MutableSet<E> = mutableSetOf()) :
+        this(delegate, ObservableMutableCollection(delegate)) {
+        collection.subscribe(this)
     }
 
     override fun toString(): String {
-        return delegate.toString().also { updateAll() }
+        return delegate.toString()
     }
 }

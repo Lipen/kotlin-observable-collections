@@ -5,7 +5,10 @@ import ru.ifmo.observable.Listener
 
 class ObservableMutableIterator<out T>(
     private val delegate: MutableIterator<T>
-) : MutableIterator<T> by delegate, AbstractObservable<Listener>() {
+) : MutableIterator<T>,
+    Iterator<T> by delegate,
+    AbstractObservable<Listener>() {
+
     override fun remove() {
         delegate.remove().also { updateAll() }
     }
