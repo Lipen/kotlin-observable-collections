@@ -1,3 +1,4 @@
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "ru.ifmo.observable"
@@ -17,6 +18,10 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
+
+    testImplementation(Libs.junit_jupiter_api)
+    testRuntimeOnly(Libs.junit_jupiter_engine)
+    testImplementation(Libs.kluent)
 }
 
 buildScan {
@@ -45,6 +50,17 @@ publishing {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
+}
+
+tasks.withType<Test> {
+    @Suppress("UnstableApiUsage")
+    useJUnitPlatform()
+    testLogging.events(
+        // TestLogEvent.PASSED,
+        TestLogEvent.FAILED,
+        TestLogEvent.SKIPPED,
+        TestLogEvent.STANDARD_ERROR
+    )
 }
 
 tasks.wrapper {
