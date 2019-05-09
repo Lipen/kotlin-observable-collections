@@ -66,10 +66,6 @@ class ObservableMutableList<E>(
         return delegate.set(index, element).also { updateAll() }
     }
 
-    override fun sort(c: Comparator<in E>) {
-        delegate.sortWith(c).also { updateAll() }
-    }
-
     override fun subList(fromIndex: Int, toIndex: Int): MutableList<E> {
         return ObservableMutableList(delegate.subList(fromIndex, toIndex)).also { it.subscribe(this) }
     }
